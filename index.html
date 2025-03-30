@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caesar Cipher Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+        }
+        
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold">Caesar Cipher</h1>
+            <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                🌓
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="space-y-6">
+            <!-- Input Section -->
+            <div>
+                <label class="block text-lg font-medium mb-2">Input Text</label>
+                <textarea 
+                    id="inputText" 
+                    class="w-full p-4 border rounded-lg bg-transparent resize-none"
+                    rows="4"
+                    placeholder="Enter your text here..."
+                ></textarea>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex-1">
+                    <label class="block text-lg font-medium mb-2">Shift Value</label>
+                    <input 
+                        type="number" 
+                        id="shiftValue" 
+                        min="1" 
+                        max="25" 
+                        value="3" 
+                        class="w-full p-2 border rounded bg-transparent"
+                    >
+                </div>
+
+                <div class="flex gap-4 mt-6">
+                    <button id="encryptBtn" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Encrypt
+                    </button>
+                    <button id="decryptBtn" class="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        Decrypt
+                    </button>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div>
+                <label class="block text-lg font-medium mb-2">Output Text</label>
+                <div class="relative">
+                    <textarea 
+                        id="outputText" 
+                        class="w-full p-4 border rounded-lg bg-transparent resize-none"
+                        rows="4"
+                        readonly
+                    ></textarea>
+                    <div class="absolute right-2 top-2 flex gap-2">
+                        <button 
+                            id="copyBtn" 
+                            class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                            title="Copy to clipboard"
+                        >
+                            📋
+                        </button>
+                        <button 
+                            id="clearBtn" 
+                            class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                            title="Clear all"
+                        >
+                            🗑️
+                        </button>
+                        <button 
+                            id="downloadBtn" 
+                            class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                            title="Download as file"
+                        >
+                            ⬇️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Caesar Cipher Functions
+        function caesarCipher(text, shift, encrypt = true) {
+            shift = encrypt ? shift : -shift;
+            return text.split('').map(char => {
+                if (/[a-z]/i.test(char)) {
+                    const code = char.charCodeAt(0);
+                    const base = code >= 97 ? 97 : 65;
+                    return String.fromCharCode(
+                        ((code - base + shift + 26) % 26) + base
+                    );
+                }
+                return char;
+            }).join('');
+        }
+
+        // DOM Elements
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('outputText');
+        const shiftValue = document.getElementById('shiftValue');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const decryptBtn = document.getElementById('decryptBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // Event Listeners
+        encryptBtn.addEventListener('click', () => {
+            const text = inputText.value;
+            const shift = parseInt(shiftValue.value);
+            outputText.value = caesarCipher(text, shift, true);
+        });
+
+        decryptBtn.addEventListener('click', () => {
+            const text = inputText.value;
+            const shift = parseInt(shiftValue.value);
+            outputText.value = caesarCipher(text, shift, false);
+        });
+
+        copyBtn.addEventListener('click', () => {
+            outputText.select();
+            navigator.clipboard.writeText(outputText.value);
+        });
+
+        clearBtn.addEventListener('click', () => {
+            inputText.value = '';
+            outputText.value = '';
+            shiftValue.value = 3;
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const blob = new Blob([outputText.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'caesar_cipher_result.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>
